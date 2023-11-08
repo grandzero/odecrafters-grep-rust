@@ -6,7 +6,13 @@ fn match_pattern(input_line: &str, pattern: &str) -> bool {
     match pattern {
         "\\d" => find_digit(input_line).is_some(),
         "\\w" => alpha_numeric(input_line),
-        _ => input_line.contains(pattern),
+        pat => {
+            if pat.starts_with("[") && pat.ends_with("]") {
+                positive_chars(input_line, pat)
+            } else {
+                input_line.contains(pat)
+            }
+        } // _ => input_line.contains(pattern),
     }
     // if pattern.chars().count() == 1 {
     //     return input_line.contains(pattern);
@@ -15,6 +21,16 @@ fn match_pattern(input_line: &str, pattern: &str) -> bool {
     // } else {
     //     false
     // }
+}
+
+fn positive_chars(input_line: &str, pattern: &str) -> bool {
+    let clean_pattern = pattern.trim_matches(|c| c == '[' || c == ']');
+    for c in clean_pattern.chars() {
+        if input_line.contains(c) {
+            return true;
+        }
+    }
+    false
 }
 
 fn find_digit(input_line: &str) -> Option<usize> {
@@ -51,10 +67,10 @@ fn main() {
 
     // Uncomment this block to pass the first stage
     if match_pattern(&input_line, &pattern) {
-        // println!("Exited with 0");
+        println!("Exited with 0");
         process::exit(0)
     } else {
-        // println!("Exited with 1");
+        println!("Exited with 1");
         process::exit(1)
     }
 }
