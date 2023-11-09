@@ -52,7 +52,7 @@ fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) 
                 }
             }
             Ok(MatchValues::EndOfString) => {
-                //println!("Pattern exhausted");
+                println!("Pattern exhausted");
                 return true;
             }
             Err(_) => {
@@ -81,6 +81,7 @@ fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) 
 
 fn pattern_resolve(pattern: &str) -> Result<MatchValues, MatchError> {
     let mut is_match_character = false;
+    println!("patternlen: {}", pattern.len());
     if pattern.len() == 0 {
         return Ok(MatchValues::EndOfString);
     }
