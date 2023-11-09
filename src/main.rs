@@ -51,11 +51,11 @@ fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) 
                 }
             }
             Ok(MatchValues::EndOfString) => {
-                println!("Pattern exhausted");
+                //println!("Pattern exhausted");
                 return true;
             }
             Err(_) => {
-                println!("Invalid pattern");
+                // println!("Invalid pattern");
                 return false;
             }
         }
