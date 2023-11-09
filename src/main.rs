@@ -19,7 +19,7 @@ fn match_pattern(input_line: &str, pattern: &str) -> bool {
 
 fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) -> bool {
     if !pattern.contains("[") {
-        println!("{}", pattern);
+        //println!("{}", pattern);
         // println!("Entered empty spaced pattern");
         // Get resolved pattern
         if input_line.len() == 0 {
@@ -52,7 +52,7 @@ fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) 
                 }
             }
             Ok(MatchValues::EndOfString) => {
-                println!("Pattern exhausted");
+                //println!("Pattern exhausted");
                 return true;
             }
             Err(_) => {
@@ -81,7 +81,7 @@ fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) 
 
 fn pattern_resolve(pattern: &str) -> Result<MatchValues, MatchError> {
     let mut is_match_character = false;
-    println!("patternlen: {}", pattern.len());
+    //println!("patternlen: {}", pattern.len());
     if pattern.len() == 0 {
         return Ok(MatchValues::EndOfString);
     }
@@ -90,7 +90,7 @@ fn pattern_resolve(pattern: &str) -> Result<MatchValues, MatchError> {
             match c {
                 'd' => return Ok(MatchValues::Digit),
                 'w' => return Ok(MatchValues::AlphaNumeric),
-                // '\\' => return Ok(MatchValues::EndOfString),
+                '\0' => return Ok(MatchValues::EndOfString),
                 _ => return Err(MatchError::InvalidPattern),
             }
         } else {
