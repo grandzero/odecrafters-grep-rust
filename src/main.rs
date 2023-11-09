@@ -19,6 +19,7 @@ fn match_pattern(input_line: &str, pattern: &str) -> bool {
 
 fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) -> bool {
     if !pattern.contains("[") {
+        println!("{}", pattern);
         // println!("Entered empty spaced pattern");
         // Get resolved pattern
         if input_line.len() == 0 {
