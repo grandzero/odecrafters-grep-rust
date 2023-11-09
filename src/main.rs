@@ -32,28 +32,22 @@ fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) 
             pattern
         };
         let resolved_pattern = pattern_resolve(pattern_slice);
-        println!("pattern: {}, input_lines : {}", pattern, input_line);
-        // let mut index = 0;
+
+        let mut recursive_pattern = full_pattern;
         match resolved_pattern {
             Ok(MatchValues::AlphaNumeric) => {
-                if !input_line.chars().nth(0).unwrap().is_alphanumeric() {
-                    return match_pattern_recursive(&input_line[1..], full_pattern, full_pattern);
-                } else {
-                    return match_pattern_recursive(&input_line[1..], &pattern[2..], full_pattern);
+                if input_line.chars().nth(0).unwrap().is_alphanumeric() {
+                    recursive_pattern = &pattern[2..];
                 }
             }
             Ok(MatchValues::Digit) => {
-                if !input_line.chars().nth(0).unwrap().is_digit(10) {
-                    return match_pattern_recursive(&input_line[1..], full_pattern, full_pattern);
-                } else {
-                    return match_pattern_recursive(&input_line[1..], &pattern[2..], full_pattern);
+                if input_line.chars().nth(0).unwrap().is_digit(10) {
+                    recursive_pattern = &pattern[2..];
                 }
             }
             Ok(MatchValues::Default) => {
-                if input_line.chars().nth(0).unwrap() != clear_pattern.chars().nth(0).unwrap() {
-                    return match_pattern_recursive(&input_line[1..], full_pattern, full_pattern);
-                } else {
-                    return match_pattern_recursive(&input_line[1..], &pattern[1..], full_pattern);
+                if input_line.chars().nth(0).unwrap() == clear_pattern.chars().nth(0).unwrap() {
+                    recursive_pattern = &pattern[1..];
                 }
             }
             Ok(MatchValues::EndOfString) => {
@@ -65,6 +59,7 @@ fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) 
                 return false;
             }
         }
+        match_pattern_recursive(&input_line[1..], recursive_pattern, full_pattern)
     } else {
         match pattern {
             "\\d" => find_digit(input_line).is_some(),
