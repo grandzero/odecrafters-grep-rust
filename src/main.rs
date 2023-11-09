@@ -8,7 +8,10 @@ fn match_pattern(input_line: &str, pattern: &str) -> bool {
         "\\w" => alpha_numeric(input_line),
         pat => {
             if pat.starts_with("[") && pat.ends_with("]") {
-                positive_chars(input_line, pat)
+                if pat.contains("^") {
+                    return positive_negative_chars(input_line, pat, false);
+                }
+                positive_negative_chars(input_line, pat, true)
             } else {
                 input_line.contains(pat)
             }
@@ -23,14 +26,14 @@ fn match_pattern(input_line: &str, pattern: &str) -> bool {
     // }
 }
 
-fn positive_chars(input_line: &str, pattern: &str) -> bool {
+fn positive_negative_chars(input_line: &str, pattern: &str, is_positive: bool) -> bool {
     let clean_pattern = pattern.trim_matches(|c| c == '[' || c == ']');
     for c in clean_pattern.chars() {
         if input_line.contains(c) {
-            return true;
+            return is_positive;
         }
     }
-    false
+    !is_positive
 }
 
 fn find_digit(input_line: &str) -> Option<usize> {
