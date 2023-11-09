@@ -22,7 +22,7 @@ fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) 
         // println!("Entered empty spaced pattern");
         // Get resolved pattern
         if input_line.len() == 0 {
-            println!("Input line exhausted");
+            //println!("Input line exhausted");
             return false;
         }
         let clear_pattern = pattern.replace("\\", "");
