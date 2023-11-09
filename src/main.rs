@@ -1,62 +1,70 @@
 use std::env;
 use std::io;
 use std::process;
-#[derive(Debug)]
+
 enum MatchValues {
     Default,
     Digit,
     AlphaNumeric,
     EndOfString,
 }
-fn match_pattern_recursive(input_line: &str, pattern: &str, is_recursive: bool) -> bool {
-    if pattern.contains(" ") {
-        println!("Entered empty spaced pattern");
+
+enum MatchError {
+    InvalidPattern,
+}
+
+fn match_pattern(input_line: &str, pattern: &str) -> bool {
+    match_pattern_recursive(input_line, pattern, pattern)
+}
+
+fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) -> bool {
+    if !pattern.contains("[") {
+        // println!("Entered empty spaced pattern");
         // Get resolved pattern
-        let resolved_pattern = pattern_resolve(pattern);
-        //println!("{:?}", resolved_pattern);
-        // Iterate through input line and check one by one
+        if input_line.len() == 0 {
+            println!("Input line exhausted");
+            return false;
+        }
         let clear_pattern = pattern.replace("\\", "");
-        for (index, character) in input_line.chars().enumerate() {
-            match resolved_pattern[index] {
-                MatchValues::AlphaNumeric => {
-                    if !character.is_alphanumeric() {
-                        println!("Alpha numeric failed");
-                        if is_recursive {
-                            continue;
-                        }
-                        return false;
-                    }
-                }
-                MatchValues::Digit => {
-                    if !character.is_digit(10) {
-                        println!("Digit failed");
-                        if is_recursive {
-                            continue;
-                        }
-                        return match_pattern_recursive(&input_line[index..], pattern, true);
-                    }
-                }
-                MatchValues::Default => {
-                    println!(
-                        "{}, {}, {}, {}",
-                        index, clear_pattern, input_line, character
-                    );
-                    if character != clear_pattern.chars().nth(index).unwrap() {
-                        println!(
-                            "Default failed Character : {}, pattern : {}",
-                            character,
-                            pattern.chars().nth(index).unwrap()
-                        );
-                        return false;
-                    }
-                }
-                _ => {
-                    println!("End of string");
-                    return false;
+        let pattern_slice = if pattern.len() >= 2 {
+            &pattern[0..2]
+        } else {
+            pattern
+        };
+        let resolved_pattern = pattern_resolve(pattern_slice);
+        println!("pattern: {}, input_lines : {}", pattern, input_line);
+        // let mut index = 0;
+        match resolved_pattern {
+            Ok(MatchValues::AlphaNumeric) => {
+                if !input_line.chars().nth(0).unwrap().is_alphanumeric() {
+                    return match_pattern_recursive(&input_line[1..], full_pattern, full_pattern);
+                } else {
+                    return match_pattern_recursive(&input_line[1..], &pattern[2..], full_pattern);
                 }
             }
+            Ok(MatchValues::Digit) => {
+                if !input_line.chars().nth(0).unwrap().is_digit(10) {
+                    return match_pattern_recursive(&input_line[1..], full_pattern, full_pattern);
+                } else {
+                    return match_pattern_recursive(&input_line[1..], &pattern[2..], full_pattern);
+                }
+            }
+            Ok(MatchValues::Default) => {
+                if input_line.chars().nth(0).unwrap() != clear_pattern.chars().nth(0).unwrap() {
+                    return match_pattern_recursive(&input_line[1..], full_pattern, full_pattern);
+                } else {
+                    return match_pattern_recursive(&input_line[1..], &pattern[1..], full_pattern);
+                }
+            }
+            Ok(MatchValues::EndOfString) => {
+                println!("Pattern exhausted");
+                return true;
+            }
+            Err(_) => {
+                println!("Invalid pattern");
+                return false;
+            }
         }
-        true
     } else {
         match pattern {
             "\\d" => find_digit(input_line).is_some(),
@@ -74,30 +82,32 @@ fn match_pattern_recursive(input_line: &str, pattern: &str, is_recursive: bool) 
         }
     }
 }
-fn match_pattern(input_line: &str, pattern: &str) -> bool {
-    match_pattern_recursive(input_line, pattern, false)
-}
 
-fn pattern_resolve(pattern: &str) -> Vec<MatchValues> {
-    let mut match_values: Vec<MatchValues> = Vec::new();
+fn pattern_resolve(pattern: &str) -> Result<MatchValues, MatchError> {
     let mut is_match_character = false;
+    if pattern.len() == 0 {
+        return Ok(MatchValues::EndOfString);
+    }
     for c in pattern.chars() {
         if is_match_character {
-            is_match_character = false;
             match c {
-                'd' => match_values.push(MatchValues::Digit),
-                'w' => match_values.push(MatchValues::AlphaNumeric),
-                _ => match_values.push(MatchValues::Default),
+                'd' => return Ok(MatchValues::Digit),
+                'w' => return Ok(MatchValues::AlphaNumeric),
+                // '\\' => return Ok(MatchValues::EndOfString),
+                _ => return Err(MatchError::InvalidPattern),
             }
         } else {
             match c {
-                '\\' => is_match_character = true,
-                _ => match_values.push(MatchValues::Default),
+                '\\' => {
+                    is_match_character = true;
+                }
+                _ => {
+                    return Ok(MatchValues::Default);
+                }
             }
         }
     }
-    match_values.push(MatchValues::EndOfString);
-    match_values
+    Err(MatchError::InvalidPattern)
 }
 
 fn positive_negative_chars(input_line: &str, pattern: &str, is_positive: bool) -> bool {
