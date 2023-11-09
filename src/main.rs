@@ -1,29 +1,92 @@
 use std::env;
 use std::io;
 use std::process;
+#[derive(Debug)]
+enum MatchValues {
+    Default,
+    Digit,
+    AlphaNumeric,
+    EndOfString,
+}
 
 fn match_pattern(input_line: &str, pattern: &str) -> bool {
-    match pattern {
-        "\\d" => find_digit(input_line).is_some(),
-        "\\w" => alpha_numeric(input_line),
-        pat => {
-            if pat.starts_with("[") && pat.ends_with("]") {
-                if pat.contains("^") {
-                    return positive_negative_chars(input_line, pat, false);
+    if pattern.contains(" ") {
+        println!("Entered empty spaced pattern");
+        // Get resolved pattern
+        let resolved_pattern = pattern_resolve(pattern);
+        //println!("{:?}", resolved_pattern);
+        // Iterate through input line and check one by one
+        let clear_pattern = pattern.replace("\\", "");
+        for (index, character) in input_line.chars().enumerate() {
+            match resolved_pattern[index] {
+                MatchValues::AlphaNumeric => {
+                    if !character.is_alphanumeric() {
+                        println!("Alpha numeric failed");
+                        return false;
+                    }
                 }
-                positive_negative_chars(input_line, pat, true)
-            } else {
-                input_line.contains(pat)
+                MatchValues::Digit => {
+                    if !character.is_digit(10) {
+                        println!("Digit failed");
+                        return false;
+                    }
+                }
+                MatchValues::Default => {
+                    //println!("{}", index);
+                    if character != clear_pattern.chars().nth(index).unwrap() {
+                        println!(
+                            "Default failed Character : {}, pattern : {}",
+                            character,
+                            pattern.chars().nth(index).unwrap()
+                        );
+                        return false;
+                    }
+                }
+                _ => {
+                    println!("End of string");
+                    return true;
+                }
             }
-        } // _ => input_line.contains(pattern),
+        }
+        true
+    } else {
+        match pattern {
+            "\\d" => find_digit(input_line).is_some(),
+            "\\w" => alpha_numeric(input_line),
+            pat => {
+                if pat.starts_with("[") && pat.ends_with("]") {
+                    if pat.contains("^") {
+                        return positive_negative_chars(input_line, pat, false);
+                    }
+                    positive_negative_chars(input_line, pat, true)
+                } else {
+                    input_line.contains(pat)
+                }
+            }
+        }
     }
-    // if pattern.chars().count() == 1 {
-    //     return input_line.contains(pattern);
-    // } else if pattern == "\\d" {
-    //     find_digit(input_line).is_some()
-    // } else {
-    //     false
-    // }
+}
+
+fn pattern_resolve(pattern: &str) -> Vec<MatchValues> {
+    let mut match_values: Vec<MatchValues> = Vec::new();
+    let mut is_match_character = false;
+    for c in pattern.chars() {
+        if is_match_character {
+            is_match_character = false;
+            match c {
+                'd' => match_values.push(MatchValues::Digit),
+                'w' => match_values.push(MatchValues::AlphaNumeric),
+                _ => match_values.push(MatchValues::Default),
+            }
+        } else {
+            match c {
+                '\\' => is_match_character = true,
+                _ => match_values.push(MatchValues::Default),
+            }
+        }
+    }
+    match_values.push(MatchValues::EndOfString);
+    match_values
 }
 
 fn positive_negative_chars(input_line: &str, pattern: &str, is_positive: bool) -> bool {
