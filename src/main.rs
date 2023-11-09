@@ -81,7 +81,8 @@ fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) 
 
 fn pattern_resolve(pattern: &str) -> Result<MatchValues, MatchError> {
     let mut is_match_character = false;
-    //println!("patternlen: {}", pattern.len());
+
+    println!("patternlen: {:?}", pattern.len());
     if pattern.len() == 0 {
         return Ok(MatchValues::EndOfString);
     }
@@ -90,7 +91,7 @@ fn pattern_resolve(pattern: &str) -> Result<MatchValues, MatchError> {
             match c {
                 'd' => return Ok(MatchValues::Digit),
                 'w' => return Ok(MatchValues::AlphaNumeric),
-                '\n' => return Ok(MatchValues::EndOfString),
+                // '\n' => return Ok(MatchValues::EndOfString),
                 _ => return Err(MatchError::InvalidPattern),
             }
         } else {
