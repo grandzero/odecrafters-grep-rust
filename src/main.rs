@@ -8,8 +8,7 @@ enum MatchValues {
     AlphaNumeric,
     EndOfString,
 }
-
-fn match_pattern(input_line: &str, pattern: &str) -> bool {
+fn match_pattern_recursive(input_line: &str, pattern: &str, is_recursive: bool) -> bool {
     if pattern.contains(" ") {
         println!("Entered empty spaced pattern");
         // Get resolved pattern
@@ -22,17 +21,26 @@ fn match_pattern(input_line: &str, pattern: &str) -> bool {
                 MatchValues::AlphaNumeric => {
                     if !character.is_alphanumeric() {
                         println!("Alpha numeric failed");
+                        if is_recursive {
+                            continue;
+                        }
                         return false;
                     }
                 }
                 MatchValues::Digit => {
                     if !character.is_digit(10) {
                         println!("Digit failed");
-                        return false;
+                        if is_recursive {
+                            continue;
+                        }
+                        return match_pattern_recursive(&input_line[index..], pattern, true);
                     }
                 }
                 MatchValues::Default => {
-                    //println!("{}", index);
+                    println!(
+                        "{}, {}, {}, {}",
+                        index, clear_pattern, input_line, character
+                    );
                     if character != clear_pattern.chars().nth(index).unwrap() {
                         println!(
                             "Default failed Character : {}, pattern : {}",
@@ -44,7 +52,7 @@ fn match_pattern(input_line: &str, pattern: &str) -> bool {
                 }
                 _ => {
                     println!("End of string");
-                    return true;
+                    return false;
                 }
             }
         }
@@ -65,6 +73,9 @@ fn match_pattern(input_line: &str, pattern: &str) -> bool {
             }
         }
     }
+}
+fn match_pattern(input_line: &str, pattern: &str) -> bool {
+    match_pattern_recursive(input_line, pattern, false)
 }
 
 fn pattern_resolve(pattern: &str) -> Vec<MatchValues> {
