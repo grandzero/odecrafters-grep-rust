@@ -83,7 +83,7 @@ fn pattern_resolve(pattern: &str) -> Result<MatchValues, MatchError> {
     let mut is_match_character = false;
 
     //println!("patternlen: {:?}", pattern.len());
-    if pattern.len() == 0 {
+    if pattern.trim().len() == 0 {
         return Ok(MatchValues::EndOfString);
     }
     for c in pattern.chars() {
