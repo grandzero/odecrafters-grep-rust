@@ -90,7 +90,7 @@ fn pattern_resolve(pattern: &str) -> Result<MatchValues, MatchError> {
             match c {
                 'd' => return Ok(MatchValues::Digit),
                 'w' => return Ok(MatchValues::AlphaNumeric),
-                '\0' => return Ok(MatchValues::EndOfString),
+                '\n' => return Ok(MatchValues::EndOfString),
                 _ => return Err(MatchError::InvalidPattern),
             }
         } else {
