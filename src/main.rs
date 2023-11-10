@@ -93,7 +93,7 @@ fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) 
                     } else {
                         return match_string_anchor(input_line, &pat[1..]);
                     }
-                    positive_negative_chars(input_line, pat, true)
+                    //positive_negative_chars(input_line, pat, true)
                 } else {
                     input_line.starts_with(&pat[1..])
                 }
