@@ -81,10 +81,10 @@ fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) 
 
 fn pattern_resolve(pattern: &str) -> Result<MatchValues, MatchError> {
     let mut is_match_character = false;
-
+    let check: &[u8] = &[115];
     //println!("patternlen: {:?}", pattern.len());
     println!("{:?}", pattern.as_bytes());
-    if pattern.len() == 0 {
+    if pattern.len() == 0 || pattern.as_bytes()[0] == check[0] {
         return Ok(MatchValues::EndOfString);
     }
     for c in pattern.chars() {
