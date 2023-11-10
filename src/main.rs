@@ -17,24 +17,24 @@ fn match_pattern(input_line: &str, pattern: &str) -> bool {
     match_pattern_recursive(input_line, pattern, pattern)
 }
 
-// fn match_string_anchor(input_line: &str, pattern: &str) -> bool {
-//     if input_line.len() == 0 {
-//         println!("Input line exhausted");
-//         return false;
-//     }
-//     let check: &[u8] = &[115];
-//     //println!("patternlen: {:?}", pattern.len());
-//     if pattern.len() == 0 || pattern.as_bytes()[0] == check[0] {
-//         println!("Pattern exhausted");
-//         return true;
-//     }
-//     if input_line.chars().nth(0).unwrap() != pattern.chars().nth(0).unwrap() {
-//         println!("Pattern not matched");
-//         return false;
-//     }
+fn match_string_anchor(input_line: &str, pattern: &str) -> bool {
+    if input_line.len() == 0 {
+        println!("Input line exhausted");
+        return false;
+    }
+    let check: &[u8] = &[115];
+    //println!("patternlen: {:?}", pattern.len());
+    if pattern.len() == 0 || pattern.as_bytes()[0] == check[0] {
+        println!("Pattern exhausted");
+        return false;
+    }
+    if input_line.chars().nth(0).unwrap() == pattern.chars().nth(0).unwrap() {
+        println!("Pattern matched");
+        return true;
+    }
 
-//     return match_string_anchor(&input_line[1..], &pattern[1..]);
-// }
+    return match_string_anchor(&input_line, &pattern[1..]);
+}
 
 fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) -> bool {
     if !pattern.starts_with("^") {
@@ -90,6 +90,8 @@ fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) 
                 if pat.starts_with("[") && pat.ends_with("]") {
                     if pat.contains("^") {
                         return positive_negative_chars(input_line, pat, false);
+                    } else {
+                        return match_string_anchor(input_line, &pat[1..]);
                     }
                     positive_negative_chars(input_line, pat, true)
                 } else {
