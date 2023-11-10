@@ -17,8 +17,27 @@ fn match_pattern(input_line: &str, pattern: &str) -> bool {
     match_pattern_recursive(input_line, pattern, pattern)
 }
 
+// fn match_string_anchor(input_line: &str, pattern: &str) -> bool {
+//     if input_line.len() == 0 {
+//         println!("Input line exhausted");
+//         return false;
+//     }
+//     let check: &[u8] = &[115];
+//     //println!("patternlen: {:?}", pattern.len());
+//     if pattern.len() == 0 || pattern.as_bytes()[0] == check[0] {
+//         println!("Pattern exhausted");
+//         return true;
+//     }
+//     if input_line.chars().nth(0).unwrap() != pattern.chars().nth(0).unwrap() {
+//         println!("Pattern not matched");
+//         return false;
+//     }
+
+//     return match_string_anchor(&input_line[1..], &pattern[1..]);
+// }
+
 fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) -> bool {
-    if !pattern.contains("[") {
+    if !pattern.starts_with("^") {
         //println!("{}", pattern);
         // println!("Entered empty spaced pattern");
         // Get resolved pattern
@@ -62,6 +81,8 @@ fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) 
         }
         match_pattern_recursive(&input_line[1..], recursive_pattern, full_pattern)
     } else {
+        println!("Entered anchor pattern");
+
         match pattern {
             "\\d" => find_digit(input_line).is_some(),
             "\\w" => alpha_numeric(input_line),
@@ -72,7 +93,7 @@ fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) 
                     }
                     positive_negative_chars(input_line, pat, true)
                 } else {
-                    input_line.contains(pat)
+                    input_line.starts_with(&pat[1..])
                 }
             }
         }
@@ -83,7 +104,6 @@ fn pattern_resolve(pattern: &str) -> Result<MatchValues, MatchError> {
     let mut is_match_character = false;
     let check: &[u8] = &[115];
     //println!("patternlen: {:?}", pattern.len());
-    println!("{:?}", pattern.as_bytes());
     if pattern.len() == 0 || pattern.as_bytes()[0] == check[0] {
         return Ok(MatchValues::EndOfString);
     }
