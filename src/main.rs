@@ -5,9 +5,13 @@ use std::io;
 use std::process;
 
 fn match_pattern(input_line: &str, pattern: &str) -> bool {
-    println!("input_line: {:?}, pattern : {:?}", input_line, pattern);
-    let val = compile_regex(input_line, pattern);
-    println!("{:?}", val);
+    let input_line_ci_cd;
+    if input_line.len() == 1 {
+        input_line_ci_cd = input_line;
+    } else {
+        input_line_ci_cd = &input_line[..input_line.len() - 1];
+    }
+    let val = compile_regex(input_line_ci_cd, pattern);
     val
 }
 
@@ -26,7 +30,7 @@ fn main() {
     io::stdin().read_line(&mut input_line).unwrap();
 
     // Uncomment this block to pass the first stage
-    if match_pattern(&input_line[..input_line.len() - 1], &pattern) {
+    if match_pattern(&input_line, &pattern) {
         println!("Exited with 0");
         process::exit(0)
     } else {
