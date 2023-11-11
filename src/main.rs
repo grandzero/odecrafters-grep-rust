@@ -5,14 +5,14 @@ use std::io;
 use std::process;
 
 fn match_pattern(input_line: &str, pattern: &str) -> bool {
-    let input_line_ci_cd;
-    if input_line.len() == 1 {
-        input_line_ci_cd = input_line;
-    } else {
-        input_line_ci_cd = &input_line[..input_line.len() - 1];
-    }
-    println!("input_line_ci_cd: {:?}", input_line_ci_cd);
-    let val = compile_regex(input_line_ci_cd, pattern);
+    // let input_line_ci_cd;
+    // if input_line.len() == 1 {
+    //     input_line_ci_cd = input_line;
+    // } else {
+    //     input_line_ci_cd = &input_line[..input_line.len() - 1];
+    // }
+    println!("input_line_ci_cd: {:?}", input_line);
+    let val = compile_regex(input_line, pattern);
     val
 }
 
