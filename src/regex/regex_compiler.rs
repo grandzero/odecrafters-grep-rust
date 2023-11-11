@@ -129,15 +129,15 @@ fn compile_m(input_line: &str, pattern: &str, tokenized_pattern: Vec<TokenizedRe
 fn compile_e(input_line: &str, tokenized_pattern: &[TokenizedRegex]) -> bool {
     match tokenized_pattern.get(0) {
         Some(TokenizedRegex::DF(val)) => {
-            if val[0] == TokenizedRegex::StartOfString {
-                return df_compile(input_line, &val[1..], false);
-                // [^abc]
-            } else {
-                // [abc]
-                // [\wbc]
-                return df_compile(input_line, &val[..], true);
-            }
+            return df_compile(input_line, &val[1..], false);
+            // [^abc]
         }
+        Some(TokenizedRegex::StartOfString) => match tokenized_pattern.get(1) {
+            Some(TokenizedRegex::DF(val)) => {
+                return df_compile(input_line, &val[..], false);
+            }
+            _ => return false,
+        },
         _ => return false,
     }
 }
