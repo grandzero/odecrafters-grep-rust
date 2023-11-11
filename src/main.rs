@@ -11,6 +11,7 @@ fn match_pattern(input_line: &str, pattern: &str) -> bool {
     } else {
         input_line_ci_cd = &input_line[..input_line.len() - 1];
     }
+    println!("input_line_ci_cd: {:?}", input_line_ci_cd);
     let val = compile_regex(input_line_ci_cd, pattern);
     val
 }
