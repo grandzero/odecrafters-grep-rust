@@ -70,7 +70,7 @@ fn df_tokenizer(
         let value = pattern.chars().next().unwrap();
         match df_tokenizer(&pattern[1..], result) {
             Ok(_) => {
-                if value.is_alphanumeric() {
+                if value.is_alphanumeric() || value == ' ' {
                     result.insert(0, TokenizedRegex::Char(value));
                 } else if value == '\\' {
                     if pattern.len() <= 1 {
