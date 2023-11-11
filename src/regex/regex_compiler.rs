@@ -73,6 +73,15 @@ impl CheckEquality for TokenizedRegex {
     }
 }
 
+fn plus_check(input_line: &str, plus: TokenizedRegex, index: usize) -> usize {
+    let value = input_line.chars().nth(0).unwrap();
+    if plus.check_equality(value) {
+        return plus_check(&input_line[1..], plus, index + 1);
+    } else {
+        return index;
+    }
+}
+
 fn input_contains(
     input_line: &str,
     tokenized_pattern: &[TokenizedRegex],
@@ -90,30 +99,31 @@ fn input_contains(
     }
 
     let value = input_line.chars().nth(0).unwrap();
+    let mut index = 1;
     if tokenized_pattern[0].check_equality(value) {
         match tokenized_pattern.get(0) {
             Some(TokenizedRegex::Plus(_)) => {
-                return input_contains(&input_line[1..], tokenized_pattern, full_tokenized_pattern);
+                index = plus_check(input_line, tokenized_pattern[0].clone(), 0);
             }
             _ => {}
         }
 
         return input_contains(
-            &input_line[1..],
+            &input_line[index..],
             &tokenized_pattern[1..],
             full_tokenized_pattern,
         );
     } else {
-        match tokenized_pattern.get(0) {
-            Some(TokenizedRegex::Plus(_)) => {
-                return input_contains(
-                    &input_line,
-                    &tokenized_pattern[1..],
-                    full_tokenized_pattern,
-                );
-            }
-            _ => {}
-        }
+        // match tokenized_pattern.get(0) {
+        //     Some(TokenizedRegex::Plus(_)) => {
+        //         return input_contains(
+        //             &input_line,
+        //             &tokenized_pattern[1..],
+        //             full_tokenized_pattern,
+        //         );
+        //     }
+        //     _ => {}
+        // }
         return input_contains(
             &input_line[1..],
             full_tokenized_pattern,
