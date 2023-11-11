@@ -40,8 +40,11 @@ pub enum ErrorTypes {
 
 fn check_zero_bytes(pattern: &str) -> Result<TokenizedRegex, TokenizedRegex> {
     let check: &[u8] = &[115];
+
     //println!("patternlen: {:?}", pattern.len());
-    if pattern.len() == 0 || pattern.as_bytes()[0] == check[0] {
+    if pattern.len() == 0
+        || (pattern.as_bytes()[0] == check[0] && pattern.chars().nth(0).unwrap() != 's')
+    {
         return Ok(TokenizedRegex::ZeroByte);
     }
     Err(TokenizedRegex::ZeroByte)
