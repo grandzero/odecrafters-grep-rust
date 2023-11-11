@@ -1,164 +1,13 @@
+mod regex;
+use regex::regex_compiler::compile_regex;
 use std::env;
 use std::io;
 use std::process;
 
-enum MatchValues {
-    Default,
-    Digit,
-    AlphaNumeric,
-    EndOfString,
-}
-
-enum MatchError {
-    InvalidPattern,
-}
-
 fn match_pattern(input_line: &str, pattern: &str) -> bool {
-    match_pattern_recursive(input_line, pattern, pattern)
-}
-
-fn match_string_anchor(input_line: &str, pattern: &str) -> bool {
-    println!("Input line : {}, pattern : {}", input_line, pattern);
-    if input_line.len() == 0 {
-        println!("Input line exhausted");
-        return false;
-    }
-    let check: &[u8] = &[115];
-    //println!("patternlen: {:?}", pattern.len());
-    if pattern.len() == 0 || pattern.as_bytes()[0] == check[0] {
-        println!("Pattern exhausted");
-        return false;
-    }
-    if input_line.chars().nth(0).unwrap() == pattern.chars().nth(0).unwrap() {
-        println!("Pattern matched");
-        return true;
-    }
-
-    return match_string_anchor(&input_line, &pattern[1..]);
-}
-
-fn match_pattern_recursive(input_line: &str, pattern: &str, full_pattern: &str) -> bool {
-    if !pattern.starts_with("^") && !pattern.starts_with("[") {
-        //println!("{}", pattern);
-        // println!("Entered empty spaced pattern");
-        // Get resolved pattern
-        if input_line.len() == 0 {
-            //println!("Input line exhausted");
-            return false;
-        }
-        let clear_pattern = pattern.replace("\\", "");
-        let pattern_slice = if pattern.len() >= 2 {
-            &pattern[0..2]
-        } else {
-            pattern
-        };
-        let resolved_pattern = pattern_resolve(pattern_slice);
-
-        let mut recursive_pattern = full_pattern;
-        match resolved_pattern {
-            Ok(MatchValues::AlphaNumeric) => {
-                if input_line.chars().nth(0).unwrap().is_alphanumeric() {
-                    recursive_pattern = &pattern[2..];
-                }
-            }
-            Ok(MatchValues::Digit) => {
-                if input_line.chars().nth(0).unwrap().is_digit(10) {
-                    recursive_pattern = &pattern[2..];
-                }
-            }
-            Ok(MatchValues::Default) => {
-                if input_line.chars().nth(0).unwrap() == clear_pattern.chars().nth(0).unwrap() {
-                    recursive_pattern = &pattern[1..];
-                }
-            }
-            Ok(MatchValues::EndOfString) => {
-                //println!("Pattern exhausted");
-                return true;
-            }
-            Err(_) => {
-                // println!("Invalid pattern");
-                return false;
-            }
-        }
-        match_pattern_recursive(&input_line[1..], recursive_pattern, full_pattern)
-    } else {
-        println!("Entered anchor pattern");
-
-        match pattern {
-            "\\d" => find_digit(input_line).is_some(),
-            "\\w" => alpha_numeric(input_line),
-            pat => {
-                if pat.starts_with("[") && pat.ends_with("]") {
-                    if pat.contains("^") {
-                        return positive_negative_chars(input_line, pat, false);
-                    } else {
-                        println!("Entered positive pattern");
-                        return match_string_anchor(input_line, &pat[1..]);
-                    }
-                    //positive_negative_chars(input_line, pat, true)
-                } else {
-                    input_line.starts_with(&pat[1..])
-                }
-            }
-        }
-    }
-}
-
-fn pattern_resolve(pattern: &str) -> Result<MatchValues, MatchError> {
-    let mut is_match_character = false;
-    let check: &[u8] = &[115];
-    //println!("patternlen: {:?}", pattern.len());
-    if pattern.len() == 0 || pattern.as_bytes()[0] == check[0] {
-        return Ok(MatchValues::EndOfString);
-    }
-    for c in pattern.chars() {
-        if is_match_character {
-            match c {
-                'd' => return Ok(MatchValues::Digit),
-                'w' => return Ok(MatchValues::AlphaNumeric),
-                '\r' | '\n' | '\0' => return Ok(MatchValues::EndOfString),
-                _ => return Err(MatchError::InvalidPattern),
-            }
-        } else {
-            match c {
-                '\\' => {
-                    is_match_character = true;
-                }
-                _ => {
-                    return Ok(MatchValues::Default);
-                }
-            }
-        }
-    }
-    Err(MatchError::InvalidPattern)
-}
-
-fn positive_negative_chars(input_line: &str, pattern: &str, is_positive: bool) -> bool {
-    let clean_pattern = pattern.trim_matches(|c| c == '[' || c == ']');
-    for c in clean_pattern.chars() {
-        if input_line.contains(c) {
-            return is_positive;
-        }
-    }
-    !is_positive
-}
-
-fn find_digit(input_line: &str) -> Option<usize> {
-    for (i, c) in input_line.chars().enumerate() {
-        if c.is_digit(10) {
-            return Some(i);
-        }
-    }
-    None
-}
-
-fn alpha_numeric(input_line: &str) -> bool {
-    for c in input_line.chars() {
-        if c.is_alphanumeric() {
-            return true;
-        }
-    }
-    false
+    let val = compile_regex(input_line, pattern);
+    println!("{:?}", val);
+    val
 }
 
 // Usage: echo <input_text> | your_grep.sh -E <pattern>
@@ -176,7 +25,7 @@ fn main() {
     io::stdin().read_line(&mut input_line).unwrap();
 
     // Uncomment this block to pass the first stage
-    if match_pattern(&input_line, &pattern) {
+    if match_pattern(&input_line[..input_line.len() - 1], &pattern) {
         println!("Exited with 0");
         process::exit(0)
     } else {
