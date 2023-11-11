@@ -15,6 +15,14 @@
  * E => SBD + M + SBC
  * GlobalRegex => M | E
  */
+
+#[derive(Debug, Clone)]
+pub enum OneOrMore {
+    Char(char),
+    PlusTempChar,
+    Digit,
+    Alphanumeric,
+}
 #[derive(Debug, Clone)]
 pub enum TokenizedRegex {
     StartOfString,
@@ -22,9 +30,8 @@ pub enum TokenizedRegex {
     StartBracket,
     EndBracket,
     Alphanumeric,
-    ZeroOrMoreTimes(char),
-    OneOrMoreTimes(char),
     Digit,
+    Plus(OneOrMore),
     Char(char),
     DF(Vec<TokenizedRegex>),
     M(Vec<TokenizedRegex>),
@@ -50,17 +57,6 @@ fn check_zero_bytes(pattern: &str) -> Result<TokenizedRegex, TokenizedRegex> {
     Err(TokenizedRegex::ZeroByte)
 }
 
-fn zero_one_times_or_more_automata(pattern: &str) -> Result<TokenizedRegex, ErrorTypes> {
-    let value = pattern.chars().next().ok_or(ErrorTypes::NotDF)?;
-    if value == '?' {
-        return Ok(TokenizedRegex::ZeroOrMoreTimes(value));
-    } else if value == '+' {
-        return Ok(TokenizedRegex::OneOrMoreTimes(value));
-    } else {
-        return Err(ErrorTypes::NotDF);
-    }
-}
-
 fn df_tokenizer(
     pattern: &str,
     result: &mut Vec<TokenizedRegex>,
@@ -72,9 +68,13 @@ fn df_tokenizer(
     } else {
         let value = pattern.chars().next().unwrap();
         match df_tokenizer(&pattern[1..], result) {
-            Ok(_) => {
+            Ok(returned_value) => {
                 if value.is_alphanumeric() || value == ' ' {
                     result.insert(0, TokenizedRegex::Char(value));
+
+                    // if second_value == '+' {
+                    //     result.insert(0, TokenizedRegex::Char(value));
+                    // }
                 } else if value == '\\' {
                     if pattern.len() <= 1 {
                         return Err(ErrorTypes::NotDF);
@@ -102,14 +102,36 @@ fn df_tokenizer(
                             _ => return Err(ErrorTypes::NotDF),
                         }
                     }
-                } else {
-                    match zero_one_times_or_more_automata(&pattern[1..]) {
-                        Ok(val) => {
-                            result.insert(0, val.clone());
-                            return Ok(val);
+                } else if value == '+' {
+                    let latest_value = result.get(0).clone();
+
+                    match latest_value {
+                        Some(TokenizedRegex::Char(_)) => {
+                            return Ok(TokenizedRegex::Plus(OneOrMore::PlusTempChar));
                         }
-                        Err(e) => return Err(e),
+                        Some(TokenizedRegex::Digit) => {
+                            return Ok(TokenizedRegex::Plus(OneOrMore::Digit));
+                        }
+                        Some(TokenizedRegex::Alphanumeric) => {
+                            return Ok(TokenizedRegex::Plus(OneOrMore::Alphanumeric));
+                        }
+                        _ => {
+                            return Err(ErrorTypes::NotDF);
+                        }
                     }
+                } else {
+                    return Err(ErrorTypes::NotDF);
+                }
+                match returned_value {
+                    TokenizedRegex::Plus(OneOrMore::PlusTempChar) => {
+                        result.remove(0);
+                        result.insert(0, TokenizedRegex::Plus(OneOrMore::Char(value)));
+                    }
+                    TokenizedRegex::Plus(v) => {
+                        result.remove(0);
+                        result.insert(0, TokenizedRegex::Plus(v));
+                    }
+                    _ => {}
                 }
                 return Ok(TokenizedRegex::Char(value));
             }

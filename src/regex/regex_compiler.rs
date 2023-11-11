@@ -1,4 +1,4 @@
-use super::{r_tokenizer, TokenizedRegex};
+use super::{r_tokenizer, regex_lang_matching::OneOrMore, TokenizedRegex};
 use std::cmp::PartialEq;
 trait CheckEquality {
     fn check_equality(&self, other: char) -> bool;
@@ -37,6 +37,7 @@ impl PartialEq for TokenizedRegex {
                     return true;
                 }
             }
+
             _ => return false,
         }
         return false;
@@ -55,6 +56,18 @@ impl CheckEquality for TokenizedRegex {
             TokenizedRegex::Digit => {
                 return other.is_digit(10);
             }
+            TokenizedRegex::Plus(val) => match val {
+                OneOrMore::Char(val) => {
+                    return val == &other;
+                }
+                OneOrMore::Digit => {
+                    return other.is_digit(10);
+                }
+                OneOrMore::Alphanumeric => {
+                    return other.is_alphanumeric();
+                }
+                _ => return false,
+            },
             _ => false,
         }
     }
@@ -65,6 +78,10 @@ fn input_contains(
     tokenized_pattern: &[TokenizedRegex],
     full_tokenized_pattern: &[TokenizedRegex],
 ) -> bool {
+    // println!(
+    //     "input_line: {:?}, tokenized_pattern : {:?}",
+    //     input_line, tokenized_pattern
+    // );
     if tokenized_pattern[0] == TokenizedRegex::ZeroByte {
         return true;
     }
@@ -74,12 +91,29 @@ fn input_contains(
 
     let value = input_line.chars().nth(0).unwrap();
     if tokenized_pattern[0].check_equality(value) {
+        match tokenized_pattern.get(0) {
+            Some(TokenizedRegex::Plus(_)) => {
+                return input_contains(&input_line[1..], tokenized_pattern, full_tokenized_pattern);
+            }
+            _ => {}
+        }
+
         return input_contains(
             &input_line[1..],
             &tokenized_pattern[1..],
             full_tokenized_pattern,
         );
     } else {
+        match tokenized_pattern.get(0) {
+            Some(TokenizedRegex::Plus(_)) => {
+                return input_contains(
+                    &input_line,
+                    &tokenized_pattern[1..],
+                    full_tokenized_pattern,
+                );
+            }
+            _ => {}
+        }
         return input_contains(
             &input_line[1..],
             full_tokenized_pattern,
@@ -119,7 +153,7 @@ fn compile_m(input_line: &str, pattern: &str, tokenized_pattern: Vec<TokenizedRe
         return input_line.ends_with(&pattern[..pattern.len() - 1]);
     } else {
         // M -> DF
-
+        // println!("tokenized_pattern: {:?}", tokenized_pattern);
         match tokenized_pattern.get(0) {
             Some(TokenizedRegex::DF(val)) => return input_contains(input_line, &val[..], &val[..]),
             _ => return false,
@@ -152,7 +186,7 @@ pub fn compile_regex(input_line: &str, pattern: &str) -> bool {
             _ => return false,
         },
         Err(_) => {
-            println!("Invalid pattern");
+            println!("Invalid pattern {:?}", tokenized_pattern);
             return false;
         }
         Ok(_) => panic!("Invalid tokenized regex type"),
