@@ -68,6 +68,18 @@ impl CheckEquality for TokenizedRegex {
                 }
                 _ => return false,
             },
+            TokenizedRegex::Question(val) => match val {
+                OneOrMore::Char(val) => {
+                    return val == &other;
+                }
+                OneOrMore::Digit => {
+                    return other.is_digit(10);
+                }
+                OneOrMore::Alphanumeric => {
+                    return other.is_alphanumeric();
+                }
+                _ => return false,
+            },
             _ => false,
         }
     }
@@ -114,16 +126,16 @@ fn input_contains(
             full_tokenized_pattern,
         );
     } else {
-        // match tokenized_pattern.get(0) {
-        //     Some(TokenizedRegex::Plus(_)) => {
-        //         return input_contains(
-        //             &input_line,
-        //             &tokenized_pattern[1..],
-        //             full_tokenized_pattern,
-        //         );
-        //     }
-        //     _ => {}
-        // }
+        match tokenized_pattern.get(0) {
+            Some(TokenizedRegex::Question(_)) => {
+                return input_contains(
+                    &input_line,
+                    &tokenized_pattern[1..],
+                    full_tokenized_pattern,
+                );
+            }
+            _ => {}
+        }
         return input_contains(
             &input_line[1..],
             full_tokenized_pattern,

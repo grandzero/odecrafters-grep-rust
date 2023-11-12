@@ -19,10 +19,11 @@
 #[derive(Debug, Clone)]
 pub enum OneOrMore {
     Char(char),
-    PlusTempChar,
     Digit,
     Alphanumeric,
+    Default,
 }
+
 #[derive(Debug, Clone)]
 pub enum TokenizedRegex {
     StartOfString,
@@ -32,6 +33,7 @@ pub enum TokenizedRegex {
     Alphanumeric,
     Digit,
     Plus(OneOrMore),
+    Question(OneOrMore),
     Char(char),
     DF(Vec<TokenizedRegex>),
     M(Vec<TokenizedRegex>),
@@ -69,12 +71,10 @@ fn df_tokenizer(
         let value = pattern.chars().next().unwrap();
         match df_tokenizer(&pattern[1..], result) {
             Ok(returned_value) => {
+                let return_value: Option<TokenizedRegex>;
                 if value.is_alphanumeric() || value == ' ' {
                     result.insert(0, TokenizedRegex::Char(value));
-
-                    // if second_value == '+' {
-                    //     result.insert(0, TokenizedRegex::Char(value));
-                    // }
+                    return_value = Some(TokenizedRegex::Char(value));
                 } else if value == '\\' {
                     if pattern.len() <= 1 {
                         return Err(ErrorTypes::NotDF);
@@ -91,49 +91,63 @@ fn df_tokenizer(
                         match second_value {
                             'd' => {
                                 result.insert(0, TokenizedRegex::Digit);
-                                return Ok(TokenizedRegex::Digit);
+                                return_value = Some(TokenizedRegex::Digit);
                             }
                             'w' => {
-                                return {
-                                    result.insert(0, TokenizedRegex::Alphanumeric);
-                                    Ok(TokenizedRegex::Alphanumeric)
-                                }
+                                result.insert(0, TokenizedRegex::Alphanumeric);
+                                return_value = Some(TokenizedRegex::Alphanumeric);
                             }
                             _ => return Err(ErrorTypes::NotDF),
                         }
                     }
                 } else if value == '+' {
-                    let latest_value = result.get(0).clone();
-
-                    match latest_value {
-                        Some(TokenizedRegex::Char(_)) => {
-                            return Ok(TokenizedRegex::Plus(OneOrMore::PlusTempChar));
-                        }
-                        Some(TokenizedRegex::Digit) => {
-                            return Ok(TokenizedRegex::Plus(OneOrMore::Digit));
-                        }
-                        Some(TokenizedRegex::Alphanumeric) => {
-                            return Ok(TokenizedRegex::Plus(OneOrMore::Alphanumeric));
-                        }
-                        _ => {
-                            return Err(ErrorTypes::NotDF);
-                        }
-                    }
+                    return Ok(TokenizedRegex::Plus(OneOrMore::Default));
+                } else if value == '?' {
+                    return Ok(TokenizedRegex::Question(OneOrMore::Default));
                 } else {
                     return Err(ErrorTypes::NotDF);
                 }
-                match returned_value {
-                    TokenizedRegex::Plus(OneOrMore::PlusTempChar) => {
-                        result.remove(0);
-                        result.insert(0, TokenizedRegex::Plus(OneOrMore::Char(value)));
+                let one_or_more_value: Option<OneOrMore>;
+                match return_value {
+                    Some(TokenizedRegex::Char(v)) => {
+                        one_or_more_value = Some(OneOrMore::Char(v))
+                        // result.insert(0, TokenizedRegex::Plus(OneOrMore::Char(v)));
                     }
-                    TokenizedRegex::Plus(v) => {
-                        result.remove(0);
-                        result.insert(0, TokenizedRegex::Plus(v));
+                    Some(TokenizedRegex::Digit) => {
+                        one_or_more_value = Some(OneOrMore::Digit)
+                        //result.insert(0, TokenizedRegex::Plus(OneOrMore::Digit));
                     }
+                    Some(TokenizedRegex::Alphanumeric) => {
+                        one_or_more_value = Some(OneOrMore::Alphanumeric)
+                        // result.insert(0, TokenizedRegex::Plus(OneOrMore::Alphanumeric));
+                    }
+                    _ => {
+                        return Err(ErrorTypes::NotDF);
+                    }
+                }
+                match one_or_more_value {
+                    Some(valid_one_or_more) => match returned_value {
+                        TokenizedRegex::Plus(_) => {
+                            result.remove(0);
+                            result.insert(0, TokenizedRegex::Plus(valid_one_or_more));
+                        }
+                        TokenizedRegex::Question(_) => {
+                            result.remove(0);
+                            result.insert(0, TokenizedRegex::Question(valid_one_or_more));
+                        }
+                        _ => {}
+                    },
                     _ => {}
                 }
-                return Ok(TokenizedRegex::Char(value));
+
+                match return_value {
+                    Some(val) => {
+                        return Ok(val);
+                    }
+                    _ => {
+                        return Err(ErrorTypes::NotDF);
+                    }
+                }
             }
             Err(e) => {
                 return Err(e);
