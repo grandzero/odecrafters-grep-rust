@@ -206,6 +206,18 @@ fn compile_e(input_line: &str, tokenized_pattern: &[TokenizedRegex]) -> bool {
 }
 
 pub fn compile_regex(input_line: &str, pattern: &str) -> bool {
+    let alternation;
+    if pattern.contains("(") && pattern.contains(")") {
+        let clear_pattern = pattern.replace("(", "").replace(")", "");
+        alternation = clear_pattern.split("|").collect::<Vec<&str>>();
+        for patterns in alternation {
+            if compile_regex(input_line, patterns) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     let tokenized_pattern = r_tokenizer(pattern);
     // println!("tokenized_pattern: {:?}", tokenized_pattern);
     match tokenized_pattern {
