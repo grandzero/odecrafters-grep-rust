@@ -32,6 +32,7 @@ pub enum TokenizedRegex {
     EndBracket,
     Alphanumeric,
     Digit,
+    Wildcard,
     Plus(OneOrMore),
     Question(OneOrMore),
     Char(char),
@@ -104,6 +105,9 @@ fn df_tokenizer(
                     return Ok(TokenizedRegex::Plus(OneOrMore::Default));
                 } else if value == '?' {
                     return Ok(TokenizedRegex::Question(OneOrMore::Default));
+                } else if value == '.' {
+                    result.insert(0, TokenizedRegex::Wildcard);
+                    return Ok(TokenizedRegex::Wildcard);
                 } else {
                     return Err(ErrorTypes::NotDF);
                 }

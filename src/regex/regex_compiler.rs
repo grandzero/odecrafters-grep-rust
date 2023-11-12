@@ -134,6 +134,13 @@ fn input_contains(
                     full_tokenized_pattern,
                 );
             }
+            Some(TokenizedRegex::Wildcard) => {
+                return input_contains(
+                    &input_line[1..],
+                    &tokenized_pattern[1..],
+                    full_tokenized_pattern,
+                );
+            }
             _ => {}
         }
         return input_contains(
